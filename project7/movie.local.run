@@ -1,0 +1,15 @@
+#!/bin/bash
+#SBATCH -A uot143
+#SBATCH --job-name="movie.local"
+#SBATCH --output="movie.local.out"
+#SBATCH --partition=shared
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=2
+#SBATCH --export=ALL 
+#SBATCH --time=60
+
+
+module load hadoop/2.6.0 spark/1.5.2
+rm -rf output
+
+spark-submit --class Movie --master local[2] movie.jar movies.txt > output-local.txt
