@@ -1,0 +1,28 @@
+#!/bin/bash
+#SBATCH -A uot143
+#SBATCH --job-name="movie"
+#SBATCH --output="movie.distr.out"
+#SBATCH --partition=compute
+## allocate 3 nodes for the Hadoop cluster: 3 datanodes, from which 1 is namenode
+#SBATCH --nodes=3
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem=5G
+#SBATCH --export=ALL 
+#SBATCH --time=600
+
+export HADOOP_CONF_DIR=/home/$USER/cometcluster
+module load hadoop/2.6.0 spark/1.5.2
+myhadoop-configure.sh
+source /home/$USER/cometcluster/spark/spark-env.sh
+start-dfs.sh
+start-yarn.sh
+myspark start
+
+hdfs dfs -mkdir -p /user/$USER
+hdfs dfs -put moviesl1.txt /user/$USER/moviesl1.txt
+
+spark-submit --class Movie --num-executors 2 movie.jar /user/$USER/moviesl1.txt > output-dist.txt
+
+stop-yarn.sh
+stop-dfs.sh
+myhadoop-cleanup.sh
